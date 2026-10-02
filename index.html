@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iman</title>
+</head>
+<body>
+  <style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;font-family:system-ui,sans-serif;background:#f2f2f2}
+[hidden]{display:none!important}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column}
+#top{background:#2c2c2c;color:#fff;display:flex;align-items:center;gap:10px;padding:8px 12px;min-height:52px}
+#top b{font-size:18px}
+button,select,input{font:inherit}
+.btn{border:0;border-radius:8px;padding:10px 14px;background:#e8e8e8;color:#222}
+.red{background:#d32f2f;color:#fff}
+.btn.on{outline:3px solid #d32f2f}
+#home{flex:1;overflow:auto;padding:12px}
+.item{background:#fff;border-radius:10px;padding:12px;margin:8px 0;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px #0002}
+.nm{flex:1;min-width:0}
+.nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nm small{color:#666}
+#viewer{flex:1;display:flex;flex-direction:column;min-height:0}
+#vt{display:flex;align-items:center;gap:10px;padding:6px 10px;background:#fff;border-bottom:1px solid #ddd}
+#ttl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+#scroll{flex:1;overflow:auto;background:#525659;padding:8px;min-height:0}
+#pagebox{position:relative;margin:0 auto;background:#fff}
+#cv{display:block}
+#ann,#tl{position:absolute;left:0;top:0;right:0;bottom:0}
+#ann{pointer-events:none}
+#ann div{position:absolute}
+#ann .h{mix-blend-mode:multiply}
+.erase #ann{pointer-events:auto}
+.erase #ann div{outline:1px dashed #d32f2f}
+.erase #tl{pointer-events:none}
+#tl{overflow:hidden;line-height:1}
+#tl span{position:absolute;white-space:pre;color:transparent;transform-origin:0 0;cursor:text}
+#tl span.sp{background:rgba(255,193,7,.5)}
+#tl ::selection{background:rgba(33,150,243,.35);color:transparent}
+#bar{background:#fff;border-top:1px solid #ccc}
+#st{padding:6px 10px;font-size:13px;color:#444;background:#fafafa}
+#tabs{display:flex}
+#tabs button{flex:1;border:0;padding:10px;background:#f0f0f0;border-bottom:3px solid transparent}
+#tabs button.on{border-bottom-color:#d32f2f;background:#fff;font-weight:600}
+.panel{padding:10px;max-height:40vh;overflow:auto}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.sw{width:32px;height:32px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #888;padding:0}
+.sw.on{box-shadow:0 0 0 3px #d32f2f}
+select{padding:8px;max-width:100%}
+input[type=range]{flex:1;min-width:120px}
+.pvb{padding:4px 8px;border-radius:4px}
+</style>
+
+<div id="app">
+ <div id="top">
+  <svg width="34" height="34" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#d32f2f"/><path d="M8 24c6-2.5 11-2 16 1v15c-5-3-10-3.5-16-1z M40 24c-6-2.5-11-2-16 1v15c5-3 10-3.5 16-1z" fill="#fff"/><path d="M18 15a8 8 0 0 1 12 0M13 10a15 15 0 0 1 22 0" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="24" cy="19" r="2.5" fill="#fff"/></svg>
+  <b id="appname">Iman</b>
+ </div>
+
+ <div id="home">
+  <button class="btn red" style="width:100%;font-size:17px" onclick="document.getElementById('f').click()">+ PDF jodo</button>
+  <input type="file" id="f" accept="application/pdf" hidden>
+  <div id="list"></div>
+ </div>
+
+ <div id="viewer" hidden>
+  <div id="vt"><button class="btn" id="back">←</button><span id="ttl"></span></div>
+  <div id="scroll"><div id="pagebox"><canvas id="cv"></canvas><div id="ann"></div><div id="tl"></div></div></div>
+  <div id="bar">
+   <div id="st">PDF chuno</div>
+   <div id="tabs"><button id="t1" class="on">Page</button><button id="t2">Sunao</button><button id="t3">Marker</button></div>
+
+   <div class="panel" id="p1">
+    <div class="row"><button class="btn" id="pb">◀</button> Page <input id="pn" type="number" min="1" style="width:70px;padding:8px"> <span id="tot"></span> <button class="btn" id="nx">▶</button></div>
+    <div class="row">Zoom <button class="btn" id="zo">−</button><button class="btn" id="zi">+</button></div>
+   </div>
+
+   <div class="panel" id="p2" hidden>
+    <div class="row"><button class="btn red" id="play">▶ Play</button><button class="btn" id="pause">⏸ Pause</button><button class="btn" id="stop">⏹ Stop</button></div>
+    <div class="row">Bhasha <select id="lang"><option value="hi">Hindi</option><option value="en">English</option><option value="bn">Bengali</option><option value="all">Sab</option></select></div>
+    <div class="row">Awaaz <select id="voice" style="flex:1"></select></div>
+    <div class="row">Speed <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"><b id="rv">1.0x</b></div>
+   </div>
+
+   <div class="panel" id="p3" hidden>
+    <div class="row"><button class="btn" id="bh">🖍 Highlight</button><button class="btn" id="bu">U̲ Underline</button><button class="btn" id="be">🧽 Hatao</button></div>
+    <div class="row">Highlight color</div>
+    <div class="row" id="hsw"></div>
+    <div class="row">Halka <input type="range" id="ha" min="0.15" max="0.9" step="0.05"> Gehra</div>
+    <div class="row">Underline color</div>
+    <div class="row" id="usw"></div>
+    <div class="row"><span id="pvh" class="pvb">Highlight namuna</span><span id="pvu" class="pvb">Underline namuna</span></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const $=id=>document.getElementById(id);
+const msg=t=>{$("st").textContent=t;};
+const S={get(k,d){try{const v=localStorage.getItem("sn_"+k);return v===null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem("sn_"+k,JSON.stringify(v));}catch(e){}}};
+
+/* ---------- Database (PDF list) ---------- */
+const DB=new Promise((res,rej)=>{try{const r=indexedDB.open("sunao",1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore("meta",{keyPath:"id"});d.createObjectStore("data");};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}});
+DB.catch(()=>{});
+function tx(store,mode,fn){return DB.then(d=>new Promise((res,rej)=>{const t=d.transaction(store,mode);const r=fn(t.objectStore(store));t.oncomplete=()=>res(r?r.result:undefined);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error);}));}
+
+let pdf=null,cur=null,pageNum=1,zoom=1,renderTok=0,rt=null,strs=[],divs=[],chunks=[],ci=0,playing=false,tok=0,erase=false;
+
+async function loadList(){
+ const box=$("list");let items=[];
+ try{items=await tx("meta","readonly",s=>s.getAll());}
+ catch(e){box.innerHTML="<p>Yahan PDF save nahi ho sakti. App ko Full Page me kholo.</p>";return;}
+ items.sort((a,b)=>(b.opened||0)-(a.opened||0));
+ if(!items.length){box.innerHTML='<p style="color:#666">Abhi koi PDF nahi hai. Upar + PDF jodo dabao.</p>';return;}
+ box.innerHTML="";
+ items.forEach(m=>{
+  const d=document.createElement("div");d.className="item";
+  d.innerHTML='<div class="nm"><b></b><small></small></div><button class="btn">🗑</button>';
+  d.querySelector("b").textContent=m.name;
+  d.querySelector("small").textContent="Page "+(m.lastPage||1)+(m.pages?" / "+m.pages:"")+" • "+Math.round(m.size/1024)+" KB";
+  d.querySelector(".nm").onclick=()=>openId(m.id);
+  d.querySelector("button").onclick=async e=>{e.stopPropagation();if(confirm("Is PDF ko hatau?\n"+m.name)){await tx("meta","readwrite",s=>s.delete(m.id));await tx("data","readwrite",s=>s.delete(m.id));loadList();}};
+  box.appendChild(d);
+ });
+}
+function saveMeta(){if(cur&&cur.id)tx("meta","readwrite",s=>s.put(cur)).catch(()=>{});}
+
+$("f").onchange=async e=>{
+ const file=e.target.files[0];e.target.value="";if(!file)return;
+ const buf=await file.arrayBuffer();
+ const m={id:Date.now(),name:file.name.replace(/\.pdf$/i,""),size:file.size,opened:Date.now(),lastPage:1,pages:0,ann:[]};
+ try{await tx("data","readwrite",s=>s.put(buf.slice(0),m.id));await tx("meta","readwrite",s=>s.put(m));}
+ catch(err){m.id=null;alert("PDF save nahi ho paayi. App ko Full Page me kholo. Abhi sirf ek baar ke liye khul rahi hai.");}
+ openPdf(m,buf);
+};
+async function openId(id){
+ const m=await tx("meta","readonly",s=>s.get(id));
+ const buf=await tx("data","readonly",s=>s.get(id));
+ if(!m||!buf){alert("PDF nahi mili");return;}
+ openPdf(m,buf);
+}
+async function openPdf(m,buf){
+ stopAll();cur=m;cur.ann=cur.ann||[];
+ $("home").hidden=true;$("viewer").hidden=false;$("ttl").textContent=m.name;
+ msg("PDF khol raha hu...");
+ try{pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;}catch(e){msg("PDF khul nahi payi");return;}
+ cur.pages=pdf.numPages;cur.opened=Date.now();saveMeta();
+ $("tot").textContent="/ "+pdf.numPages;zoom=1;
+ await showPage(Math.min(cur.lastPage||1,pdf.numPages));
+}
+$("back").onclick=()=>{stopAll();$("viewer").hidden=true;$("home").hidden=false;loadList();};
+
+/* ---------- Page dikhana ---------- */
+async function showPage(n,keep){
+ n=Math.max(1,Math.min(pdf.numPages,n));pageNum=n;const my=++renderTok;
+ $("pn").value=n;cur.lastPage=n;saveMeta();
+ if(rt){try{rt.cancel();}catch(e){}try{await rt.promise;}catch(e){}rt=null;}
+ const page=await pdf.getPage(n);if(my!==renderTok)return;
+ const w=Math.max(200,($("scroll").clientWidth-16)*zoom);
+ const sc=w/page.getViewport({scale:1}).width;const vp=page.getViewport({scale:sc});const dpr=window.devicePixelRatio||1;
+ const cv=$("cv");cv.width=Math.floor(vp.width*dpr);cv.height=Math.floor(vp.height*dpr);
+ cv.style.width=vp.width+"px";cv.style.height=vp.height+"px";
+ const box=$("pagebox");box.style.width=vp.width+"px";box.style.height=vp.height+"px";
+ $("tl").innerHTML="";$("ann").innerHTML="";clearSp();
+ rt=page.render({canvasContext:cv.getContext("2d"),viewport:vp,transform:[dpr,0,0,dpr,0,0]});
+ try{await rt.promise;}catch(e){return;}
+ if(my!==renderTok)return;
+ const tc=await page.getTextContent();if(my!==renderTok)return;
+ strs=[];divs=[];
+  $("tl").style.setProperty("--scale-factor",vp.scale)
+ try{await pdfjsLib.renderTextLayer({textContentSource:tc,container:$("tl"),viewport:vp,textDivs:divs,textContentItemsStr:strs}).promise;}catch(e){}
+ if(my!==renderTok)return;
+ drawAnn();buildChunks();ci=0;
+ if(!keep)$("scroll").scrollTop=0;
+ if(!playing)msg("Page "+n+" / "+pdf.numPages+(chunks.length?"":" (is page par text nahi mila)"));
+}
+$("nx").onclick=()=>{if(!pdf)return;stopAll();showPage(pageNum+1);};
+$("pb").onclick=()=>{if(!pdf)return;stopAll();showPage(pageNum-1);};
+$("pn").onchange=()=>{if(!pdf)return;stopAll();showPage(parseInt($("pn").value)||1);};
+$("zi").onclick=()=>{if(!pdf)return;stopAll();zoom=Math.min(3,zoom+0.25);showPage(pageNum,true);};
+$("zo").onclick=()=>{if(!pdf)return;stopAll();zoom=Math.max(0.6,zoom-0.25);showPage(pageNum,true);};
+
+/* ---------- Tabs ---------- */
+function tab(n){[1,2,3].forEach(i=>{$("p"+i).hidden=i!==n;$("t"+i).classList.toggle("on",i===n);});}
+[1,2,3].forEach(i=>$("t"+i).onclick=()=>tab(i));
+
+/* ---------- Awaaz ---------- */
+const LC={hi:"hi-IN",bn:"bn-IN",en:"en-IN"};
+function fillVoices(){
+ const l=$("lang").value;const all=speechSynthesis.getVoices();
+ const vs=l==="all"?all:all.filter(v=>v.lang.replace("_","-").toLowerCase().startsWith(l));
+ const sel=$("voice");sel.innerHTML="";
+ vs.forEach(v=>{const o=document.createElement("option");o.value=v.name+"|"+v.lang;o.textContent=v.name+" ("+v.lang+")";sel.appendChild(o);});
+ if(!vs.length){const o=document.createElement("option");o.value="";o.textContent="Is bhasha ki awaaz nahi mili";sel.appendChild(o);}
+ const sv=S.get("voice_"+l,"");if(sv&&vs.some(v=>v.name+"|"+v.lang===sv))sel.value=sv;
+}
+function pickVoice(){const val=$("voice").value;return speechSynthesis.getVoices().find(v=>v.name+"|"+v.lang===val);}
+$("lang").value=S.get("lang","hi");
+$("lang").onchange=()=>{S.set("lang",$("lang").value);fillVoices();};
+$("voice").onchange=()=>S.set("voice_"+$("lang").value,$("voice").value);
+speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=fillVoices;fillVoices();
+$("rate").value=S.get("rate",1);$("rv").textContent=(+$("rate").value).toFixed(1)+"x";
+$("rate").oninput=()=>{$("rv").textContent=(+$("rate").value).toFixed(1)+"x";S.set("rate",+$("rate").value);};
+
+function buildChunks(){
+ chunks=[];let t="",idx=[];
+ strs.forEach((s,i)=>{
+  if(!s.trim())return;
+  t+=s+" ";idx.push(i);
+  if((t.length>=100&&/[।.!?]\s*$/.test(t))||t.length>=250){chunks.push({t:t.trim(),idx});t="";idx=[];}
+ });
+ if(t.trim())chunks.push({t:t.trim(),idx});
+}
+function clearSp(){document.querySelectorAll("#tl .sp").forEach(e=>e.classList.remove("sp"));}
+async function speak(){
+ if(!playing)return;
+ if(ci>=chunks.length){
+  if(pageNum>=pdf.numPages){stopAll();ci=0;msg("PDF khatam");return;}
+  const t0=tok;await showPage(pageNum+1);
+  if(t0!==tok||!playing)return;
+  ci=0;return speak();
+ }
+ const my=++tok;const ch=chunks[ci];
+ clearSp();
+ ch.idx.forEach(i=>divs[i]&&divs[i].classList.add("sp"));
+ const first=divs[ch.idx[0]];if(first&&first.scrollIntoView)first.scrollIntoView({block:"center",behavior:"smooth"});
+ const u=new SpeechSynthesisUtterance(ch.t);
+ const v=pickVoice();
+ if(v){u.voice=v;u.lang=v.lang;}else{u.lang=LC[$("lang").value]||"hi-IN";msg("Is bhasha ki awaaz phone me nahi mili");}
+ u.rate=+$("rate").value;
+ u.onstart=()=>{if(v)msg("Page "+pageNum+": bol raha hu "+(ci+1)+"/"+chunks.length);};
+ u.onerror=e=>{if(e.error!=="interrupted"&&e.error!=="canceled")msg("Error: "+e.error);};
+ u.onend=()=>{if(my===tok&&playing){ci++;speak();}};
+ speechSynthesis.speak(u);
+}
+function stopAll(){playing=false;tok++;speechSynthesis.cancel();clearSp();}
+$("play").onclick=()=>{if(!pdf)return;speechSynthesis.cancel();playing=true;tok++;setTimeout(speak,250);};
+$("pause").onclick=()=>{playing=false;tok++;speechSynthesis.cancel();msg("Ruka hua (Play dabao to wahin se chalega)");};
+$("stop").onclick=()=>{stopAll();ci=0;msg("Band");};
+
+/* ---------- Highlight aur Underline ---------- */
+const HC=["#ffeb3b","#8bc34a","#4fc3f7","#f48fb1","#ffb74d"],UC=["#d32f2f","#1565c0","#2e7d32","#000000","#f57c00"];
+let hlColor=S.get("hc",HC[0]),hlAlpha=S.get("ha",0.5),ulColor=S.get("uc",UC[0]);
+function hexA(h,a){const n=parseInt(h.slice(1),16);return "rgba("+(n>>16&255)+","+(n>>8&255)+","+(n&255)+","+a+")";}
+function prev(){
+ $("pvh").style.background=hexA(hlColor,hlAlpha);
+ $("pvu").style.borderBottom="2px solid "+ulColor;
+ S.set("hc",hlColor);S.set("ha",hlAlpha);S.set("uc",ulColor);
+}
+function swatches(id,arr,get,set){
+ const el=$(id);el.innerHTML="";
+ arr.forEach(c=>{const b=document.createElement("button");b.className="sw"+(get()===c?" on":"");b.style.background=c;b.onclick=()=>{set(c);swatches(id,arr,get,set);prev();};el.appendChild(b);});
+ const i=document.createElement("input");i.type="color";i.value=get();i.oninput=()=>{set(i.value);prev();};
+ i.style.cssText="width:38px;height:38px;padding:0;border:0;background:none";el.appendChild(i);
+}
+swatches("hsw",HC,()=>hlColor,c=>hlColor=c);
+swatches("usw",UC,()=>ulColor,c=>ulColor=c);
+$("ha").value=hlAlpha;$("ha").oninput=()=>{hlAlpha=+$("ha").value;prev();};
+prev();
+
+function ov(a,b){const x=Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])),y=Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1]));return x*y/Math.min(a[2]*a[3],b[2]*b[3]);}
+function applySel(t){
+ const s=getSelection();
+ if(!s||s.isCollapsed||!s.rangeCount){msg("Pehle text chuno: kisi shabd par long press karo");return;}
+ const b=$("pagebox").getBoundingClientRect();const rs=[];
+ [...s.getRangeAt(0).getClientRects()].forEach(q=>{
+  if(q.width<2||q.height<2)return;
+  const r=[(q.left-b.left)/b.width,(q.top-b.top)/b.height,q.width/b.width,q.height/b.height];
+  if(r[3]>0.15||r[0]<-0.02||r[1]<-0.02||r[0]>1||r[1]>1)return;
+  if(rs.some(k=>ov(k,r)>0.8))return;
+  rs.push(r);
+ });
+ if(!rs.length){msg("Is page ke text par chuno");return;}
+ cur.ann.push({i:Date.now(),p:pageNum,t,c:t==="h"?hlColor:ulColor,a:hlAlpha,r:rs});
+ saveMeta();drawAnn();s.removeAllRanges();msg(t==="h"?"Highlight ho gaya":"Underline ho gaya");
+}
+function drawAnn(){
+ const L=$("ann");L.innerHTML="";
+ (cur.ann||[]).filter(a=>a.p===pageNum).forEach(a=>{
+  a.r.forEach(r=>{
+   const d=document.createElement("div");
+   d.style.cssText="left:"+r[0]*100+"%;top:"+r[1]*100+"%;width:"+r[2]*100+"%;height:"+r[3]*100+"%";
+   if(a.t==="h"){d.className="h";d.style.background=a.c;d.style.opacity=a.a;}
+   else{d.style.borderBottom="2px solid "+a.c;}
+   d.onclick=()=>{if(erase){cur.ann=cur.ann.filter(x=>x.i!==a.i);saveMeta();drawAnn();}};
+   L.appendChild(d);
+  });
+ });
+}
+[["bh","h"],["bu","u"]].forEach(([id,t])=>$(id).addEventListener("pointerdown",e=>{e.preventDefault();applySel(t);}));
+$("be").onclick=()=>{erase=!erase;$("pagebox").classList.toggle("erase",erase);$("be").classList.toggle("on",erase);msg(erase?"Hatane ke liye highlight ya underline par tap karo":"Hatana band");};
+
+loadList();
+  </script>
+  </body>
+</html>
